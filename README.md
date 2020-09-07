@@ -16,5 +16,6 @@ docker run \
   -e EXTERNAL_PROJECT_KEY=EXTPROJ \
   -e TEAM_PLAN_URL=https://jira.example.com/plan/search \
   -e TEAM_ID=13 \
+  -e ALTERNATIVE_NAMES={}
   feardapanda/outsource-status-zulip:1.0.0
 ```
