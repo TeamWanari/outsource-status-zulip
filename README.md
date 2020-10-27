@@ -16,6 +16,8 @@ docker run \
   -e EXTERNAL_PROJECT_KEY=EXTPROJ \
   -e TEAM_PLAN_URL=https://jira.example.com/plan/search \
   -e TEAM_ID=13 \
-  -e ALTERNATIVE_NAMES={}
+  -e ALTERNATIVE_NAMES=jiraId1:user1,jiraId2:user2
   feardapanda/outsource-status-zulip:1.0.0
 ```
+
+If you don't need to map Jira user IDs to Zulip usernames, then omit the optional ALTERNATIVE_NAMES environment variable.

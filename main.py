@@ -3,7 +3,8 @@ import zulip
 import requests
 from datetime import datetime
 import json
-
+from logger import AppLogger
+logger = AppLogger(__name__)
 
 jira_user = os.environ['JIRA_USER']
 jira_password = os.environ['JIRA_PASSWORD']
@@ -12,7 +13,7 @@ stream = os.environ['ZULIP_STREAM']
 topic = os.environ['ZULIP_TOPIC']
 external_project_key = os.environ['EXTERNAL_PROJECT_KEY']
 team_id = os.environ['TEAM_ID']
-alternative_names_string = os.environ['ALTERNATIVE_NAMES']
+alternative_names_string = os.getenv('ALTERNATIVE_NAMES')
 # ZULIP_SITE - zulip client
 # ZULIP_EMAIL - zulip client
 # ZULIP_API_KEY - zulip client
@@ -21,10 +22,14 @@ alternative_names_string = os.environ['ALTERNATIVE_NAMES']
 client = zulip.Client()
 
 alternative_names = dict()
-for item in alternative_names_string.split(','):
-    name = item.split(':')[0]
-    alt_name = item.split(':')[1]
-    alternative_names[name] = alt_name
+if alternative_names_string:
+    logger.debug(f'ALTERNATIVE_NAMES optional env var has been set to {alternative_names_string}!')
+    for item in alternative_names_string.split(','):
+        name = item.split(':')[0]
+        alt_name = item.split(':')[1]
+        alternative_names[name] = alt_name
+else:
+    logger.debug('ALTERNATIVE_NAMES optional env var has not been set!')
 
 
 class Outsource:
@@ -34,6 +39,7 @@ class Outsource:
 
 
 def get_outsource(plan_data):
+    logger.debug(f'Getting outsource infos for plan data: {plan_data}!')
     def filter_for_external_projects(elem):
         return elem.get('planItemInfo', {}).get('projectKey', '') == external_project_key
     external_plans = list(filter(filter_for_external_projects, plan_data))
@@ -41,12 +47,14 @@ def get_outsource(plan_data):
 
 
 def correct_names(outsource_plan):
+    logger.debug('Correcting names with alternatives if necessary!')
     def correct_name(o):
         return Outsource(alternative_names.get(o.name.lower(), o.name), o.project)
     return list(correct_name(o) for o in outsource_plan)
 
 
 def send_outsource_status_message(outsource_data):
+    logger.debug(f'Sending message to Zulip!')
     content = "ma: :outbox:\n" + '\n'.join(("- {0}: {1}".format(x.name.capitalize(), x.project) for x in outsource_data))
     request = {
         "type": "stream",
@@ -58,6 +66,7 @@ def send_outsource_status_message(outsource_data):
 
 
 today = str(datetime.today().date())
+logger.debug(f'Sending POST request to endpoint: {team_plan_url}!')
 r = requests.post(
     url=team_plan_url,
     json={
