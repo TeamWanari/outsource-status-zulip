@@ -12,7 +12,7 @@ stream = os.environ['ZULIP_STREAM']
 topic = os.environ['ZULIP_TOPIC']
 external_project_key = os.environ['EXTERNAL_PROJECT_KEY']
 team_id = os.environ['TEAM_ID']
-alternative_names_string = os.environ['ALTERNATIVE_NAMES']
+alternative_names_string = os.getenv('ALTERNATIVE_NAMES')
 # ZULIP_SITE - zulip client
 # ZULIP_EMAIL - zulip client
 # ZULIP_API_KEY - zulip client
@@ -21,10 +21,11 @@ alternative_names_string = os.environ['ALTERNATIVE_NAMES']
 client = zulip.Client()
 
 alternative_names = dict()
-for item in alternative_names_string.split(','):
-    name = item.split(':')[0]
-    alt_name = item.split(':')[1]
-    alternative_names[name] = alt_name
+if alternative_names_string:
+    for item in alternative_names_string.split(','):
+        name = item.split(':')[0]
+        alt_name = item.split(':')[1]
+        alternative_names[name] = alt_name
 
 
 class Outsource:
